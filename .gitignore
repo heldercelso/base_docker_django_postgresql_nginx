@@ -1,0 +1,6 @@
+venv
+postgres_data
+nginx_swag_https_files
+*.pyc
+__pycache__
+web_project/mysite.log

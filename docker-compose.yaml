@@ -1,0 +1,47 @@
+version: "3.9"
+# command to access container already running:
+# - docker exec -ti dc3d5f0716c2 bash
+# - command on gitbash: winpty docker exec -ti dc3d5f0716c2 bash
+services:
+    web:
+        image: django_app
+        container_name: web
+        build: ./web_project
+        command: python manage.py runserver 0.0.0.0:8000
+        #command: >
+        #    sh -c "exec gunicorn django_project.wsgi:application -b :8000 --reload"
+        volumes:
+            - ./web_project:/code
+        ports:
+            - "8000:8000"
+        env_file:
+            - development.env
+        depends_on:
+            - db
+    db:
+        image: postgres:13.4-alpine
+        container_name: db
+        volumes:
+            - ./postgres_data:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+        environment: # it is defined in web_project/django_project/settings.py
+            - POSTGRES_DB=my_app_database
+            - POSTGRES_USER=user_myapp
+            - POSTGRES_PASSWORD=pass_myapp
+    nginx:
+        image: nginx:1.21.3-alpine
+        container_name: nginx
+        volumes:
+            - ./nginx_http:/etc/nginx/conf.d
+            - ./nginx_http/sitemap.xml:/config/nginx/sitemap.xml
+            - ./web_project/staticfiles:/staticfiles
+        ports:
+            - "80:80"
+        depends_on:
+            - web
+volumes:
+    postgres_data:
+    web_project:
+    nginx_http:
+    staticfiles:

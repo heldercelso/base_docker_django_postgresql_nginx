@@ -1,0 +1,23 @@
+version: "3.9"
+# https://stackoverflow.com/questions/26331651/how-can-i-backup-a-docker-container-with-its-data-volumes
+# commands:
+# - docker-compose -f .\docker-compose.backup_db.yaml run --rm db-backup
+# - docker-compose -f .\docker-compose.backup_db.yaml run --rm db-restore
+services:
+    db-backup:
+        image: alpine    
+        tty: false
+        environment:
+          - TARGET=docker_django_postgresql_nginx_postgres_data
+        volumes:
+          - ./backup:/backup
+          - ./postgres_data:/volume
+        command: sh -c "tar -cjf /backup/$${TARGET}.tar.bz2 -C /volume ./"
+    db-restore:
+        image: alpine    
+        environment:
+            - SOURCE=docker_django_postgresql_nginx_postgres_data
+        volumes:
+            - ./backup:/backup
+            - ./postgres_data:/volume
+        command: sh -c "rm -rf /volume/* /volume/..?* /volume/.[!.]* ; tar -C /volume/ -xjf /backup/$${SOURCE}.tar.bz2"

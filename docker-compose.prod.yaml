@@ -1,0 +1,95 @@
+version: "3.9"
+
+services:
+    web:
+        image: django_app
+        container_name: web
+        build: ./web_project
+        #command: gunicorn --bind 0.0.0.0:8000 django_project.wsgi:application
+        command: >
+            sh -c "exec gunicorn django_project.wsgi:application -b :8000 --reload"
+        volumes:
+            - ./web_project:/code
+        env_file:
+            - production.env
+        deploy:
+            resources:
+                limits:
+                  cpus: '0.50'
+                  memory: 80M
+        #        reservations:
+        #          cpus: '0.25'
+        #          memory: 64M
+        depends_on:
+            - db
+    db:
+        image: postgres:13.4-alpine
+        container_name: db
+        volumes:
+            - ./postgres_data:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+        environment: # it is defined in web_project/django_project/settings.py
+            - POSTGRES_DB=my_app_database
+            - POSTGRES_USER=user_myapp
+            - POSTGRES_PASSWORD=pass_myapp
+        deploy:
+            resources:
+                limits:
+                  cpus: '0.30'
+                  memory: 150M
+
+    #nginx: # edit production.env file to NGINX_WITH_WAG=0
+    #    image: nginx:1.21.3-alpine
+    #    volumes:
+    #        - ./nginx_http:/etc/nginx/conf.d
+    #    ports:
+    #        - "80:80"
+        #links:
+        #    - web:web
+    #    depends_on:
+    #        - web
+    swag: # edit production.env file to NGINX_WITH_WAG=1
+        image: ghcr.io/linuxserver/swag:1.20.0
+        container_name: swag
+        cap_add:
+            - NET_ADMIN
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=America/Sao_Paulo
+            #- URL=<yourdomain>.duckdns.org # if duckdns is being used
+            #- SUBDOMAINS=wildcard,
+            #- VALIDATION=duckdns
+            #- DUCKDNSTOKEN=e7844475-22b1-4de8-8c22-6bef0958c984
+            - URL=<yourdomain>.com # if paid domain is being used
+            - SUBDOMAINS=www,
+            - VALIDATION=http
+            #- CERTPROVIDER=zerossl # in case you want to change from letsencrypt to zerossl provider
+            #- EMAIL=<your email>
+            #- STAGING=true # for development tests you can use this option
+        volumes:
+            - ./nginx_swag_https/default:/config/nginx/site-confs/default
+            - ./nginx_swag_https/django_project.conf:/config/nginx/proxy-confs/django_project.conf
+            - ./nginx_swag_https/ssl.conf:/config/nginx/ssl.conf
+            - ./nginx_swag_https/sitemap.xml:/config/nginx/sitemap.xml
+            - ./web_project/staticfiles:/staticfiles
+        ports:
+            - "443:443"
+            - "80:80"
+        depends_on:
+            - web
+        restart: unless-stopped
+        deploy:
+            resources:
+                limits:
+                  cpus: '0.50'
+                  memory: 100M
+        #        reservations:
+        #          cpus: '0.25'
+        #          memory: 64M
+volumes:
+    postgres_data:
+    web_project:
+    nginx_swag_https:
+    staticfiles:
