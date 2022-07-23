@@ -21,14 +21,14 @@ However you can use official Nginx container if needed. Just change it in the `d
 
 1. Edit .conf files:
 * If Swag container is being used (default):
-Open `nginx_swag_https/django_project.conf` and replace <yourdomain>.
+Open `nginx_swag_https/django_project.conf` and replace `<yourdomain>`.
 
 * If Nginx will be used:
-Open `nginx_http/django_project.conf` and replace <yourdomain>.
+Open `nginx_http/django_project.conf` and replace `<yourdomain>`.
 
-2. Put you sitemap.xml in nginx_http or nginx_swag_https (Nginx or Swag respectively)
+2. Put your `sitemap.xml` in nginx_http or nginx_swag_https (Nginx or Swag respectively);
 
-3. Edit production.env and replace <yourdomain>
+3. Edit production.env and replace `<yourdomain>`.
 
 ## Database Backup
 
@@ -43,14 +43,14 @@ $ docker-compose -f .\docker-compose.backup_db.yaml run --rm db-backup
 $ docker-compose -f .\docker-compose.backup_db.yaml run --rm db-restore
 ```
 
-## Instruções para executar:
+## Running the project:
 
 Development mode:
 ```shell
 $ docker-compose up
 ```
 
-Production mode
+Production mode:
 ```shell
 $ docker-compose -f docker-compose.prod.yaml up
 ```
